@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050505">
+  <title>AZURA — WebAR Portfolio</title>
+
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+  <style>
+    :root {
+      --bg: #050505;
+      --white: #f6f3ee;
+      --soft: rgba(246, 243, 238, .62);
+      --line: rgba(246, 243, 238, .14);
+      --accent: #ff5a1f;
+      --glass: rgba(5, 5, 5, .58);
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--white);
+      font-family: Futura, "Futura PT", "Avenir Next", Avenir, Helvetica, Arial, sans-serif;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px),
+        radial-gradient(circle at 18% 78%, rgba(255,255,255,.16), transparent 22%),
+        radial-gradient(circle at 82% 20%, rgba(255,255,255,.06), transparent 30%),
+        linear-gradient(90deg, rgba(0,0,0,.22), rgba(0,0,0,.74));
+      background-size: 72px 72px, 72px 72px, cover, cover, cover;
+      opacity: .68;
+      mix-blend-mode: screen;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at center, transparent 34%, rgba(0,0,0,.64) 100%),
+        linear-gradient(to bottom, rgba(0,0,0,.14), rgba(0,0,0,.54));
+    }
+
+    a-scene {
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #ui {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      pointer-events: none;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: clamp(22px, 4vw, 54px);
+    }
+
+    .topbar,
+    .bottom {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: start;
+      gap: 24px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .cross {
+      width: 24px;
+      height: 24px;
+      position: relative;
+      margin-top: 2px;
+    }
+
+    .cross::before,
+    .cross::after {
+      content: "";
+      position: absolute;
+      background: var(--white);
+      opacity: .82;
+    }
+
+    .cross::before {
+      width: 24px;
+      height: 1px;
+      top: 11px;
+      left: 0;
+    }
+
+    .cross::after {
+      width: 1px;
+      height: 24px;
+      top: 0;
+      left: 11px;
+    }
+
+    .dot {
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      top: 8.5px;
+      left: 8.5px;
+      box-shadow: 0 0 18px rgba(255, 90, 31, .55);
+    }
+
+    .label strong,
+    .identity strong {
+      display: block;
+      font-size: 13px;
+      letter-spacing: .03em;
+      margin-bottom: 6px;
+    }
+
+    .label span,
+    .meta,
+    .identity span {
+      color: var(--soft);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .meta {
+      text-align: right;
+      opacity: .58;
+    }
+
+    .hero {
+      align-self: center;
+      max-width: 920px;
+      transform: translateY(2vh);
+    }
+
+    .index {
+      display: flex;
+      align-items: center;
+      gap: 34px;
+      margin-bottom: clamp(28px, 5vh, 56px);
+      color: rgba(246, 243, 238, .86);
+      font-size: clamp(13px, 2vw, 18px);
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin: 0;
+      font-size: clamp(58px, 14vw, 168px);
+      line-height: .78;
+      letter-spacing: -.08em;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      display: block;
+      margin-top: clamp(14px, 2vw, 30px);
+      font-size: clamp(34px, 8vw, 96px);
+      line-height: .9;
+      font-weight: 300;
+      letter-spacing: -.08em;
+      text-transform: uppercase;
+    }
+
+    .accent {
+      width: 26px;
+      height: 4px;
+      background: var(--accent);
+      margin: clamp(28px, 5vh, 44px) 0 18px;
+    }
+
+    .hook {
+      max-width: 620px;
+      font-size: clamp(15px, 2.2vw, 24px);
+      line-height: 1.18;
+      letter-spacing: -.04em;
+    }
+
+    .hook strong {
+      display: block;
+      font-size: .92em;
+      letter-spacing: -.02em;
+      text-transform: uppercase;
+    }
+
+    .qr-card {
+      width: 160px;
+      height: 160px;
+      border: 1px solid rgba(246, 243, 238, .76);
+      display: grid;
+      place-items: center;
+      position: relative;
+      background: rgba(0,0,0,.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .qr-card span {
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--soft);
+      text-align: center;
+    }
+
+    .identity {
+      align-self: end;
+      font-size: clamp(14px, 2vw, 18px);
+      line-height: 1.35;
+      letter-spacing: -.03em;
+    }
+
+    .status {
+      justify-self: end;
+      align-self: end;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      border: 1px solid rgba(246, 243, 238, .32);
+      border-radius: 999px;
+      background: var(--glass);
+      backdrop-filter: blur(18px);
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(246, 243, 238, .76);
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+    }
+
+    .pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 18px rgba(255,90,31,.7);
+    }
+
+    @media (max-width: 720px) {
+      #ui { padding: 22px; }
+      .topbar { grid-template-columns: auto 1fr; }
+      .meta { display: none; }
+      .bottom { grid-template-columns: 1fr; gap: 18px; }
+      .qr-card { display: none; }
+      .status { justify-self: start; }
+      .hero { transform: translateY(-1vh); }
+      .title { font-size: clamp(64px, 20vw, 110px); }
+      .subtitle { font-size: clamp(42px, 13vw, 76px); }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="ui">
+    <header class="topbar">
+      <div class="cross"><i class="dot"></i></div>
+      <div class="label">
+        <strong>Portfolio professionnel</strong>
+        <span>Direction artistique / Design graphique / Motion design</span>
+      </div>
+      <div class="meta">Diplôme<br>Titre RNCP 6 — Design graphique</div>
+    </header>
+
+    <main class="hero">
+      <div class="index"><span>001</span><span>Sélection de projets</span></div>
+      <h1 class="title">AZURA<span class="subtitle">WebAR</span></h1>
+      <div class="accent"></div>
+      <p class="hook"><strong>Image tracking actif.</strong>Vise l’image AZURA pour révéler la vidéo flottante.</p>
+    </main>
+
+    <footer class="bottom">
+      <div class="qr-card"><span>Scan<br>AR Experience</span></div>
+      <div class="identity">
+        <strong>Hugo Bousquet</strong>
+        <span>3D Designer — Direction artistique & Motion<br>Portfolio expérimental en réalité augmentée</span>
+      </div>
+      <div class="status"><i class="pulse"></i><span>Chargement AR</span></div>
+    </footer>
+  </div>
+
+  <a-scene
+    mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiLoading: no; uiScanning: no; uiError: no"
+    color-space="sRGB"
+    renderer="colorManagement: true; antialias: true"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: true"
+    embedded>
+
+    <a-assets>
+      <video id="azuraVideo" src="./azura-video.mp4" preload="auto" loop muted playsinline webkit-playsinline></video>
+    </a-assets>
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <a-entity mindar-image-target="targetIndex: 0">
+      <a-video
+        src="#azuraVideo"
+        position="0 0.18 0.08"
+        rotation="-16 0 0"
+        width="1.28"
+        height="0.72"
+        material="shader: flat; transparent: true; opacity: 0.98; side: double">
+      </a-video>
+
+      <a-plane
+        position="0 -0.26 0.025"
+        rotation="-16 0 0"
+        width="1.22"
+        height="0.08"
+        material="color: #000000; opacity: 0.28; transparent: true">
+      </a-plane>
+    </a-entity>
+  </a-scene>
+
+  <script>
+    const video = document.querySelector('#azuraVideo');
+    const scene = document.querySelector('a-scene');
+    const statusText = document.querySelector('.status span');
+
+    function playVideo() {
+      if (!video) return;
+      video.play().catch(() => {});
+    }
+
+    if (scene) {
+      scene.addEventListener('targetFound', () => {
+        playVideo();
+        statusText.textContent = 'Vidéo révélée';
+      });
+
+      scene.addEventListener('targetLost', () => {
+        if (video) video.pause();
+        statusText.textContent = 'Image tracking actif';
+      });
+    }
+
+    document.body.addEventListener('click', playVideo);
+    document.body.addEventListener('touchstart', playVideo, { passive: true });
+  </script>
+</body>
+</html>
